@@ -23,7 +23,8 @@ object SoulApiClient {
                     return@Thread
                 }
 
-                val request = ChatRequest(model = "glm-4-flash", messages = messages)
+                val model = ApiKeyManager.getModel(context)
+                val request = ChatRequest(model = model, messages = messages)
                 val json = com.google.gson.Gson().toJson(request)
 
                 val url = URL(API_URL)
