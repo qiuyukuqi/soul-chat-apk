@@ -2,6 +2,8 @@ package com.soul.app.api
 
 import android.content.Context
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -31,7 +33,8 @@ object SoulApiClient {
             messages = messages
         )
         val json = com.google.gson.Gson().toJson(request)
-        val body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), json)
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val body = json.toRequestBody(mediaType)
 
         val req = Request.Builder()
             .url(API_URL)
@@ -47,14 +50,16 @@ object SoulApiClient {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                try {
-                    val respBody = response.body()?.string()
-                    val chatResp = com.google.gson.Gson().fromJson(respBody, ChatResponse::class.java)
-                    val reply = chatResp?.choices?.firstOrNull()?.message?.content
-                    callback(reply ?: "服务器返回为空")
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    callback("解析错误: ${e.message}")
+                response.use {
+                    try {
+                        val respBody = it.body?.string()
+                        val chatResp = com.google.gson.Gson().fromJson(respBody, ChatResponse::class.java)
+                        val reply = chatResp?.choices?.firstOrNull()?.message?.content
+                        callback(reply ?: "服务器返回为空")
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        callback("解析错误: ${e.message}")
+                    }
                 }
             }
         })
