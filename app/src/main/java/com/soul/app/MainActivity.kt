@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
         val editText = android.widget.EditText(this).apply {
             hint = "请输入智谱 API Key"
             setSingleLine()
-            setText(ApiKeyManager.get(this))
+            setText(ApiKeyManager.get(this@MainActivity))
         }
 
         container.addView(modelLabel)
@@ -124,11 +124,11 @@ class MainActivity : AppCompatActivity() {
                 val key = editText.text.toString().trim()
                 val selectedModel = models[spinner.selectedItemPosition].first
                 if (key.isNotEmpty()) {
-                    ApiKeyManager.save(this, key)
-                    ApiKeyManager.saveModel(this, selectedModel)
-                    Toast.makeText(this, "已保存: ${models[spinner.selectedItemPosition].second}", Toast.LENGTH_SHORT).show()
+                    ApiKeyManager.save(this@MainActivity, key)
+                    ApiKeyManager.saveModel(this@MainActivity, selectedModel)
+                    Toast.makeText(this@MainActivity, "已保存: ${models[spinner.selectedItemPosition].second}", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "Key 不能为空", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Key 不能为空", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("取消", null)

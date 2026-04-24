@@ -93,12 +93,12 @@ class SplashActivity : AppCompatActivity() {
                 val key = editText.text.toString().trim()
                 val selectedModel = models[spinner.selectedItemPosition].first
                 if (key.isNotEmpty()) {
-                    ApiKeyManager.save(this, key)
-                    ApiKeyManager.saveModel(this, selectedModel)
-                    Toast.makeText(this, "配置完成，已选择: ${models[spinner.selectedItemPosition].second}", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, MainActivity::class.java))
+                    ApiKeyManager.save(this@SplashActivity, key)
+                    ApiKeyManager.saveModel(this@SplashActivity, selectedModel)
+                    Toast.makeText(this@SplashActivity, "配置完成，已选择: ${models[spinner.selectedItemPosition].second}", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
                 } else {
-                    Toast.makeText(this, "Key 不能为空，3秒后重试", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SplashActivity, "Key 不能为空，3秒后重试", Toast.LENGTH_SHORT).show()
                     Handler(Looper.getMainLooper()).postDelayed({ showApiKeyDialog() }, 3000)
                 }
             }
