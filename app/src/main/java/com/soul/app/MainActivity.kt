@@ -1,63 +1,49 @@
 package com.soul.app
 
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.soul.app.api.ApiKeyManager
-import com.soul.app.api.SoulApiClient
+import com.soul.app.chat.ChatAdapter
 import com.soul.app.chat.ChatManager
 import com.soul.app.chat.Message
-import com.soul.app.chat.MessageAdapter
 import com.soul.app.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var adapter: MessageAdapter
+    private lateinit var chatAdapter: ChatAdapter
     private lateinit var chatManager: ChatManager
+    private val messages = mutableListOf<Message>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        adapter = MessageAdapter()
+        chatAdapter = ChatAdapter(messages)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        binding.recyclerView.adapter = adapter
+        binding.recyclerView.adapter = chatAdapter
 
-        val apiKey = ApiKeyManager.getKey(this)
-        chatManager = ChatManager(apiKey)
-
-        chatManager.setListener(object : ChatManager.ChatListener {
-            override fun onResponse(message: Message) {
-                runOnUiThread {
-                    adapter.addMessage(message)
-                    binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
-                }
-            }
-
-            override fun onError(error: String) {
-                runOnUiThread {
-                    Toast.makeText(this@MainActivity, error, Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
+        chatManager = ChatManager()
 
         binding.sendButton.setOnClickListener {
             val input = binding.inputText.text.toString().trim()
             if (input.isEmpty()) return@setOnClickListener
 
-            adapter.addMessage(Message("user", input))
+            // Add user message
+            messages.add(Message("user", input))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            binding.recyclerView.scrollToPosition(messages.size - 1)
             binding.inputText.text?.clear()
-            binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
-            binding.loadingView.visibility = View.VISIBLE
-            chatManager.send(input)
-        }
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        chatManager.cancel()
+            // Get bot reply
+            chatManager.getBotReply(this, input) { reply ->
+                runOnUiThread {
+                    messages.add(Message("bot", reply))
+                    chatAdapter.notifyItemInserted(messages.size - 1)
+                    binding.recyclerView.scrollToPosition(messages.size - 1)
+                }
+            }
+        }
     }
 }
