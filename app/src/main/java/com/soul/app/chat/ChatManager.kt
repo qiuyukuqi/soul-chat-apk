@@ -1,7 +1,7 @@
 package com.soul.app.chat
 
 import android.content.Context
-import com.soul.app.api.SoulApiClientWrapper
+import com.soul.app.api.SoulApiClient
 
 class ChatManager {
     val messages = mutableListOf<Message>()
@@ -15,7 +15,7 @@ class ChatManager {
             mapOf("role" to it.role, "content" to it.content)
         }
         val fullMessages = history + mapOf("role" to "user", "content" to userText)
-        SoulApiClientWrapper.send(context, fullMessages) { reply ->
+        SoulApiClient.send(context, fullMessages) { reply ->
             callback(reply)
         }
     }
