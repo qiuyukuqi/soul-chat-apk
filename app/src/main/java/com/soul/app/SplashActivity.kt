@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.Spinner
@@ -28,20 +27,25 @@ class SplashActivity : AppCompatActivity() {
         val binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Delay to show splash screen, then check API key
         Handler(Looper.getMainLooper()).postDelayed({
-            if (ApiKeyManager.hasKey(this)) {
-                startActivity(Intent(this, MainActivity::class.java))
-            } else {
-                showApiKeyDialog()
-            }
-            finish()
+            checkAndShowConfig()
         }, 1500)
+    }
+
+    private fun checkAndShowConfig() {
+        if (ApiKeyManager.hasKey(this)) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        } else {
+            showApiKeyDialog()
+        }
     }
 
     private fun showApiKeyDialog() {
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(48, 32, 48, 0)
+            setPadding(64, 40, 64, 0)
         }
 
         val modelLabel = android.widget.TextView(this).apply {
@@ -55,7 +59,6 @@ class SplashActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, modelNames)
         spinner.adapter = adapter
 
-        // Restore previously selected model
         val savedModel = ApiKeyManager.getModel(this)
         val savedIndex = models.indexOfFirst { it.first == savedModel }.takeIf { it >= 0 } ?: 0
         spinner.setSelection(savedIndex)
@@ -85,7 +88,7 @@ class SplashActivity : AppCompatActivity() {
         container.addView(editText)
         container.addView(hint)
 
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("配置 Soul 陪聊")
             .setView(container)
             .setCancelable(false)
@@ -93,19 +96,21 @@ class SplashActivity : AppCompatActivity() {
                 val key = editText.text.toString().trim()
                 val selectedModel = models[spinner.selectedItemPosition].first
                 if (key.isNotEmpty()) {
-                    ApiKeyManager.save(this@SplashActivity, key)
-                    ApiKeyManager.saveModel(this@SplashActivity, selectedModel)
-                    Toast.makeText(this@SplashActivity, "配置完成，已选择: ${models[spinner.selectedItemPosition].second}", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    ApiKeyManager.save(this, key)
+                    ApiKeyManager.saveModel(this, selectedModel)
+                    Toast.makeText(this, "配置完成！", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
                 } else {
-                    Toast.makeText(this@SplashActivity, "Key 不能为空，3秒后重试", Toast.LENGTH_SHORT).show()
-                    Handler(Looper.getMainLooper()).postDelayed({ showApiKeyDialog() }, 3000)
+                    Toast.makeText(this, "Key 不能为空", Toast.LENGTH_SHORT).show()
+                    Handler(Looper.getMainLooper()).postDelayed({ showApiKeyDialog() }, 500)
                 }
             }
-            .setNegativeButton("取消") { _, _ ->
-                Toast.makeText(this, "需要 API Key 才能使用", Toast.LENGTH_LONG).show()
-                Handler(Looper.getMainLooper()).postDelayed({ finish() }, 2000)
+            .setNegativeButton("退出") { _, _ ->
+                finish()
             }
-            .show()
+            .create()
+
+        dialog.show()
     }
 }
